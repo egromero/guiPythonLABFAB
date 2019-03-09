@@ -168,7 +168,11 @@ class MainWindow(QMainWindow):
         self.thread.start()
         self.sym ={'12':'0', '11':'-', '10':'K'}
         self.visible(False)
-   
+        self.textResponse = {1: 'Bienvenido {}',
+                             2: 'Bienvenido {}, no estás matriculado en el laboratorio',
+                             3: 'Usuario no inscrito en plataforma',
+                             4: 'Hasta luego {}'}
+
 
     def visible(self, bvalue):
         self.pushButton.setVisible(not(bvalue))
@@ -255,7 +259,8 @@ class MainWindow(QMainWindow):
 
     def screenResponse(self, value):
             matriculado = False
-            print(value, type(value))
+            
+            
             
             # option = {"<class 'dict'>":('Bienvenido '+value['student']['nombre'] if type(value)==dict else 0, 
             #           'rgb(0,255,0)', value['student']['nombre']+' no estás matriculado','rgb(255,255,0)',
