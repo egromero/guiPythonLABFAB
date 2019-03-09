@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        self.showFullScreen()
+        #self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.changeColor)
         self.thread.sig2.connect(self.changeColor)
@@ -255,6 +255,7 @@ class MainWindow(QMainWindow):
 
     def changeColor(self, value):
             matriculado = False
+            print(value, type(value))
             
             # option = {"<class 'dict'>":('Bienvenido '+value['student']['nombre'] if type(value)==dict else 0, 
             #           'rgb(0,255,0)', value['student']['nombre']+' no estás matriculado','rgb(255,255,0)',
