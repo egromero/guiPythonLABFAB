@@ -163,8 +163,8 @@ class MainWindow(QMainWindow):
         QMetaObject.connectSlotsByName(MainWindow)
         #self.showFullScreen()
         self.thread = Reader()
-        self.thread.sig1.connect(self.changeColor)
-        self.thread.sig2.connect(self.changeColor)
+        self.thread.sig1.connect(self.screenResponse)
+        self.thread.sig2.connect(self.screenResponse)
         self.thread.start()
         self.sym ={'12':'0', '11':'-', '10':'K'}
         self.visible(False)
@@ -227,7 +227,7 @@ class MainWindow(QMainWindow):
             response = requests.post(url, data).json()
             if response['type'] == 'student':
                 self.visible(False)
-                self.changeColor(response['data'])
+                self.screenResponse(response['data'])
             else:
                 self.visible(False)
                 texto = 'Visita Registrada, Bienvenido'
@@ -253,7 +253,7 @@ class MainWindow(QMainWindow):
             self.label_6.setText('Sistema De Acceso a Laboratorios UC')
 
 
-    def changeColor(self, value):
+    def screenResponse(self, value):
             matriculado = False
             print(value, type(value))
             
