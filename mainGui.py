@@ -139,10 +139,10 @@ class visitsRecords(QMainWindow):
     def retranslateUi(self, MainWindow):
         _translate = QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.comboBox.setItemText(0, _translate("MainWindow", "Académica"))
+        self.comboBox.setItemText(0, _translate("MainWindow", "Investigación"))
         self.comboBox.setItemText(1, _translate("MainWindow", "Personal"))
         self.comboBox.setItemText(2, _translate("MainWindow", "Emprendimiento"))
-        self.comboBox.setItemText(3, _translate("MainWindow", "Pregrado"))
+        self.comboBox.setItemText(3, _translate("MainWindow", "Curso"))
         self.comboBox.setItemText(4, _translate("MainWindow", "Taller"))
         self.comboBox_1.setItemText(1, _translate("MainWindow", "Otro"))
         self.comboBox_1.setItemText(0, _translate("MainWindow", "Pontificia Universidad Católica de Chile"))
