@@ -10,8 +10,8 @@ import sys
 import requests
 import urllib.request
 from localdbmanager import recordsWriter, visitsRecordsWriter
-#import RPi.GPIO as GPIO
-#import MFRC522
+import RPi.GPIO as GPIO
+import MFRC522
       
 
 font_but = QtGui.QFont()
@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
 
 
     def send(self, data):
-        url = 'http://localhost:3000/visits'
+        url = 'https://redlabuc.herokuapp.com/visits'
         if internet_on():
             response = requests.post(url, data).json()
             if response['type'] == 'student':
@@ -287,61 +287,51 @@ class Reader(QThread):
 
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
-    def run(self):
-        time.sleep(4)
-        url = 'http://localhost:3000/records'
-        rfid = 'E4dsq2'
-        req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
-        if not req:
-            req = ''
-            self.sig2.emit(req)
-        else:
-            self.sig1.emit(req)
-     
+
     
-    # def run(self):
-    #     url = 'https://redlabuc.herokuapp.com/records'
-    #     continue_reading = True
-    #     # Create an object of the class MFRC522
-    #     MIFAREReader = MFRC522.MFRC522()
-    #     # Welcome message
-    #     print("Welcome to the MFRC522 data read example")
-    #     print("Press Ctrl-C to stop.")
+    def run(self):
+        url = 'https://redlabuc.herokuapp.com/records'
+        continue_reading = True
+        # Create an object of the class MFRC522
+        MIFAREReader = MFRC522.MFRC522()
+        # Welcome message
+        print("Welcome to the MFRC522 data read example")
+        print("Press Ctrl-C to stop.")
 
-    #     # This loop keeps checking for chips. If one is near it will get the UID and authenticate
-    #     while continue_reading:
+        # This loop keeps checking for chips. If one is near it will get the UID and authenticate
+        while continue_reading:
             
-    #         # Scan for cards    
-    #         (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
+            # Scan for cards    
+            (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
 
-    #         # If a card is found
-    #         if status == MIFAREReader.MI_OK:
-    #             print("Card detected")
+            # If a card is found
+            if status == MIFAREReader.MI_OK:
+                print("Card detected")
             
-    #         # Get the UID of the card
-    #         (status,uid) = MIFAREReader.MFRC522_Anticoll()
+            # Get the UID of the card
+            (status,uid) = MIFAREReader.MFRC522_Anticoll()
 
-    #         # If we have the UID, continue
-    #         if status == MIFAREReader.MI_OK:
+            # If we have the UID, continue
+            if status == MIFAREReader.MI_OK:
 
-    #             # Print UID
-    #             print("Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
-    #             print(uid)
-    #             rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
-    #             try:
-    #                 req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
-    #                 if not req:
-    #                     req = ''
-    #                     self.sig2.emit(req)
-    #                 else:
-    #                     self.sig1.emit(req)
+                # Print UID
+                print("Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                print(uid)
+                rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
+                try:
+                    req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
+                    if not req:
+                        req = ''
+                        self.sig2.emit(req)
+                    else:
+                        self.sig1.emit(req)
      
-    #             except:
-    #                 req = 'Not Internet Conection'
-    #                 self.sig2.emit(req)
+                except:
+                    req = 'Not Internet Conection'
+                    self.sig2.emit(req)
             
-    #             time.sleep(5)
-    #             GPIO.cleanup()
+                time.sleep(5)
+                GPIO.cleanup()
 
 
 
