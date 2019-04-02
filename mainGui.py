@@ -2,7 +2,7 @@
 import sys
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QGridLayout, QLabel, QVBoxLayout, QMessageBox, QComboBox, QStyle
-from PyQt5.QtCore import pyqtSlot, QTimer, QDate, QTime, QDateTime, pyqtSignal, QThread, Qt, QRect, QMetaObject, QCoreApplication
+from PyQt5.QtCore import pyqtSlot, QTimer, QDate, QTime, QDateTime, pyqtSignal, QThread, Qt, QRect, QMetaObject, QCoreApplication, QSize
 from PyQt5.QtTest import QTest
 import datetime
 import time
@@ -12,6 +12,7 @@ import urllib.request
 from localdbmanager import recordsWriter, visitsRecordsWriter
 import RPi.GPIO as GPIO
 import MFRC522
+from itertools import cycle
       
 
 font_but = QtGui.QFont()
@@ -161,14 +162,42 @@ class visitsRecords(QMainWindow):
     
     def send(self):
         self.close()
-        if self.labelrut.text():
+        if self.validarRut(self.labelrut.text()):
             rut = self.labelrut.text()[:-1]+'-'+self.labelrut.text()[-1]
             data = {'rut': rut, 
                     'motivo': self.comboBox.currentText(),
                     'institucion': self.comboBox_1.currentText(),
                     'lab_id': self.lab_id}
             self.sig.emit(data)
+        else:
+        	   msg = QMessageBox()
+        	   msg.setIcon(QMessageBox.Critical)
+        	   msg.setText("Rut ingresado es incorrecto")
+        	   msg.setWindowTitle("ERROR")
+        	   msg.setBaseSize(QSize(780,350))
+        	   msg.setStyleSheet("font-size:45px;")
+        	   msg.exec()
+    
+    def validarRut(self, rut):
+        if len(rut)>9:
+            return False
+        rut = rut.upper()
+        rut = rut.replace("-","")
+        rut = rut.replace(".","")
+        aux = rut[:-1]
+        dv = rut[-1:]
 
+        revertido = map(int, reversed(str(aux)))
+        factors = cycle(range(2,8))
+        s = sum(d * f for d, f in zip(revertido,factors))
+        res = (-s)%11
+
+        if str(res) == dv:
+            return True
+        elif dv=="K" and res==10:
+            return True
+        else:
+            return False
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
