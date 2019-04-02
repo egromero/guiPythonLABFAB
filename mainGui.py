@@ -188,8 +188,8 @@ class MainWindow(QMainWindow):
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.recordVisit)
         self.labeltext = QLabel(self.centralwidget)
-        self.labeltext.setGeometry(QRect(456, 166, 300,400))
-        self.labeltext.setStyleSheet("font: 40pt \"MS Shell Dlg 2\";\n"
+        self.labeltext.setGeometry(QRect(720, 320, 800, 400))
+        self.labeltext.setStyleSheet("border-image: none; font: 50pt \"MS Shell Dlg 2\";\n"
         "background :rgba(255,255, 255,0); color: white")
         self.labeltext.setVisible(False)
         MainWindow.setCentralWidget(self.centralwidget)

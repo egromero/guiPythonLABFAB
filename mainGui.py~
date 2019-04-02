@@ -81,7 +81,7 @@ class visitsRecords(QMainWindow):
         self.pushButton_3.setGeometry(QRect(660, 710, 155, 100))
         self.pushButton_3.setStyleSheet("border-image: none; background: transparent; border: 0px; ")
         self.pushButton_3.setObjectName("3")
-        self.pushButton_k = QPushButton('K',self)
+        self.pushButton_k = QPushButton(self)
         self.pushButton_k.setGeometry(QRect(230, 865, 155, 100))
         self.pushButton_k.setStyleSheet("border-image: none; background: transparent; border: 0px;outline: none ")
         self.pushButton_k.setObjectName("k")
@@ -93,7 +93,7 @@ class visitsRecords(QMainWindow):
         self.pushButton_d.setGeometry(QRect(660, 865, 155, 100))
         self.pushButton_d.setStyleSheet("border-image: none; background: transparent; border: 0px; outline: none;")
         self.pushButton_d.setObjectName("d")
-        self.pushButton_s = QPushButton('Enviar', self)
+        self.pushButton_s = QPushButton(self)
         self.pushButton_s.setGeometry(QRect(1190, 870, 370, 100))
         self.pushButton_s.setStyleSheet("border-image: none; background: transparent; border: 0px; outline: none;")
         self.pushButton_s.setObjectName("s")
@@ -188,8 +188,8 @@ class MainWindow(QMainWindow):
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.recordVisit)
         self.labeltext = QLabel(self.centralwidget)
-        self.labeltext.setGeometry(QRect(456, 166, 300,400))
-        self.labeltext.setStyleSheet("font: 40pt \"MS Shell Dlg 2\";\n"
+        self.labeltext.setGeometry(QRect(700, 320, 800, 400))
+        self.labeltext.setStyleSheet("border-image: none; font: 50pt \"MS Shell Dlg 2\";\n"
         "background :rgba(255,255, 255,0); color: white")
         self.labeltext.setVisible(False)
         MainWindow.setCentralWidget(self.centralwidget)
