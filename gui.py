@@ -339,11 +339,13 @@ class Reader(QThread):
             if status == MIFAREReader.MI_OK:
 
                 # Print UID
-                print("Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
-                print(uid)
-                rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
+                #print("Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                print('h',str(uid).replace('[','').replace(']',''))
+                #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
+                
                 try:
                     req = requests.post(url, data={'rfid':rfid,'tipo':"ingreso"}).json()
+                    print(req)
                     if not req:
                         req = ''
                         self.sig2.emit(req)
