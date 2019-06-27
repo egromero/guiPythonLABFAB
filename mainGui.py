@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QGridLayout, QLabel, QVBoxLayout, QMessageBox, QComboBox, QStyle
+from PyQt5.QtWidgets import QApplication, QMainWindow,QDesktopWidget, QSizePolicy, QWidget, QPushButton, QGridLayout, QLabel, QVBoxLayout, QMessageBox, QComboBox, QStyle
 from PyQt5.QtCore import pyqtSlot, QTimer, QDate, QTime, QDateTime, pyqtSignal, QThread, Qt, QRect, QMetaObject, QCoreApplication, QSize
 from PyQt5.QtTest import QTest
 import datetime
@@ -18,8 +18,9 @@ from itertools import cycle
 font_but = QtGui.QFont()
 font_but.setFamily("Segoe UI Symbol")
 font_but.setPointSize(20)
-font_but.setWeight(200) 
+font_but.setWeight(200)
 
+gral_url = "https://redlabuc.herokuapp.com/"
 
 def internet_on():
     try:
@@ -216,11 +217,18 @@ class MainWindow(QMainWindow):
         self.pushButton.setStyleSheet("border-image: none; background: transparent; border: 0px; outline: none; ")
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.recordVisit)
+        
         self.labeltext = QLabel(self.centralwidget)
-        self.labeltext.setGeometry(QRect(720, 320, 800, 400))
-        self.labeltext.setStyleSheet("border-image: none; font: 50pt \"MS Shell Dlg 2\";\n"
+        #self.labeltext.setGeometry(QStyle.alignedRect(Qt.LeftToRight,Qt.AlignCenter,self.size(),QDesktopWidget().screenGeometry()))
+        print("aqui: ",QDesktopWidget().screenGeometry())
+
+        self.labeltext.setGeometry(QRect(760, 320, 800, 400))
+        self.labeltext.setStyleSheet("border-image: none; font: 100pt \"MS Shell Dlg 2\";\n"
         "background :rgba(255,255, 255,0); color: white")
+        
+        
         self.labeltext.setVisible(False)
+        
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
@@ -244,7 +252,7 @@ class MainWindow(QMainWindow):
 
 
     def send(self, data):
-        url = 'https://redlabuc.herokuapp.com/visits'
+        url = gral_url+"visits"
         if internet_on():
             response = requests.post(url, data).json()
             if response['type'] == 'student':
@@ -272,7 +280,15 @@ class MainWindow(QMainWindow):
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
+
+        ## aqui logica para centro de  label text
+        long = len(dataset['name'].split(' ')[0])
+
+        
+        self.labeltext.setGeometry(QRect(760-long*10, 320, long*100, 400))
+
         self.labeltext.setText(dataset['name'].split(' ')[0])
+        
         QTest.qWait(3000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
@@ -318,7 +334,8 @@ class Reader(QThread):
 
     
     def run(self):
-        url = 'https://redlabuc.herokuapp.com/records'
+        url = gral_url+"records"
+        print(url)
         continue_reading = True
         # Create an object of the class MFRC522
         MIFAREReader = MFRC522.MFRC522()
@@ -344,9 +361,11 @@ class Reader(QThread):
 
                 # Print UID
                 rfid= str(uid[0])+":"+str(uid[1])+":"+str(uid[2])+":"+str(uid[3])
+                print(rfid)
                 #print(str(uid).replace('[','').replace(']','').replace(' ','').strip())
                 #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
                 try:
+                    print("entramos")
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
                     if not req:
                         req = ''
