@@ -272,7 +272,7 @@ class MainWindow(QMainWindow):
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
-        self.labeltext.setText(dataset['name'])
+        self.labeltext.setText(dataset['name'].split(' ')[0])
         QTest.qWait(3000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
@@ -343,7 +343,7 @@ class Reader(QThread):
             if status == MIFAREReader.MI_OK:
 
                 # Print UID
-                rfid= str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3])
+                rfid= str(uid[0])+":"+str(uid[1])+":"+str(uid[2])+":"+str(uid[3])
                 #print(str(uid).replace('[','').replace(']','').replace(' ','').strip())
                 #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
                 try:
