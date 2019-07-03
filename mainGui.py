@@ -201,14 +201,14 @@ class visitsRecords(QMainWindow):
             return False
 
 class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, size, parent=None):
         super(MainWindow, self).__init__(parent=parent)
-        self.setupUi(self)
+        self.setupUi(self, size)
 
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow, size):
         MainWindow.setObjectName("MainWindow")
-        #MainWindow.resize(1202, 676)
-        self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
+        self.screen_size = size
+        self.setStyleSheet("QWidget {border-image: url(images/InitialBG)}")
         self.lab_id = 1
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -217,18 +217,9 @@ class MainWindow(QMainWindow):
         self.pushButton.setStyleSheet("border-image: none; background: transparent; border: 0px; outline: none; ")
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.recordVisit)
-        
         self.labeltext = QLabel(self.centralwidget)
-        #self.labeltext.setGeometry(QStyle.alignedRect(Qt.LeftToRight,Qt.AlignCenter,self.size(),QDesktopWidget().screenGeometry()))
-        print("aqui: ",QDesktopWidget().screenGeometry())
-
-        self.labeltext.setGeometry(QRect(760, 320, 800, 400))
-        self.labeltext.setStyleSheet("border-image: none; font: 100pt \"MS Shell Dlg 2\";\n"
-        "background :rgba(255,255, 255,0); color: white")
-        
-        
+        self.labeltext.setStyleSheet("border-image: none; font: 80pt; color: white;")
         self.labeltext.setVisible(False)
-        
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
@@ -280,15 +271,11 @@ class MainWindow(QMainWindow):
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
-
-        ## aqui logica para centro de  label text
-        long = len(dataset['name'].split(' ')[0])
-
-        
-        self.labeltext.setGeometry(QRect(760-long*10, 320, long*100, 400))
-
-        self.labeltext.setText(dataset['name'].split(' ')[0])
-        
+        leters = len(dataset['name'].split(' ')[0])
+        width = leters if leters<=8 else 8
+        offset = 10 if leters>8 else 0
+        self.labeltext.setGeometry(QRect((size[0]/2)-width*20-offset , 350, width*80, 100))
+        self.labeltext.setText(dataset['name'].split(' ')[0])   
         QTest.qWait(3000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
@@ -387,7 +374,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     desktop = QApplication.desktop()
     resolution = desktop.availableGeometry()
-    myapp = MainWindow()
+    width , height = resolution.width(), resolution.height()
+    myapp = MainWindow((width, height))
     myapp.show()
     myapp.move(resolution.center() - myapp.rect().center())
     sys.exit(app.exec_())
