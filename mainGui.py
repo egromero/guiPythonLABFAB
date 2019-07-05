@@ -277,7 +277,7 @@ class MainWindow(QMainWindow):
 
     def checkUcDB(self,rfid):
         print(rfid, 'checkeando db')
-        self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") ## La de esperando
+        self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
         data = api_call.get_data(rfid)
         print(data)
         if isinstance(data, str):
