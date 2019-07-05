@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        self.showFullScreen()
+        #self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -273,8 +273,10 @@ class MainWindow(QMainWindow):
 
 
     def checkUcDB(self,rfid):
-        self.setStyleSheet("QWidget {border-image: url(images/ NUEVA IMAGEN AQUI .png)}") ## La de esperando
+        print(rfid, 'checkeando db')
+        #self.setStyleSheet("QWidget {border-image: url(images/ NUEVA IMAGEN AQUI .png)}") ## La de esperando
         data = api_call.get_data(rfid)
+        print(data)
         if isinstance(data, str):
             return None
         student = requests.post(self.url_student, data)
@@ -290,7 +292,7 @@ class MainWindow(QMainWindow):
         leters = len(dataset['name'].split(' ')[0])
         width = leters if leters<=8 else 8
         offset = 10 if leters>8 else 0
-        self.labeltext.setGeometry(QRect((size[0]/2)-width*20-offset , 350, width*80, 100))
+        self.labeltext.setGeometry(QRect((self.screen_size[0]/2)-width*20-offset , 350, width*80, 100))
         self.labeltext.setText(dataset['name'].split(' ')[0])   
         QTest.qWait(3000)
         self.labeltext.setVisible(False)
@@ -361,8 +363,10 @@ class Reader(QThread):
             if status == MIFAREReader.MI_OK:
 
                 # Print UID
-                rfid= str(uid[0])+":"+str(uid[1])+":"+str(uid[2])+":"+str(uid[3])
-                print(rfid)
+                #rfid= str(uid[0])+":"+str(uid[1])+":"+str(uid[2])+":"+str(uid[3])
+                #rfid= str(uid[3])+str(uid[2])+str(uid[1])+str(uid[0])
+                rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
+                rfid =rfid.upper()
                 #print(str(uid).replace('[','').replace(']','').replace(' ','').strip())
                 #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
                 try:
