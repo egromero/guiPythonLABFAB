@@ -13,6 +13,7 @@ from localdbmanager import recordsWriter, visitsRecordsWriter
 import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
+import api_call
       
 
 font_but = QtGui.QFont()
@@ -235,6 +236,7 @@ class MainWindow(QMainWindow):
                           'visit':'images/Visit.png',
                           'baned':'images/Baned'}
         self.generateInstance()
+        self.url_student = gral_url+'students/created_from_totem'
 
 
     def generateInstance(self):
@@ -264,8 +266,22 @@ class MainWindow(QMainWindow):
         if isinstance(value, dict):
             self.studentCase(value)
         else:
-            dataset = {'name':'', 'image': self.imageCase['nonSystemEnroll']}
-            self.changeScreen(dataset)
+            if not self.checkUcDB(value):
+                dataset = {'name':'', 'image': self.imageCase['nonSystemEnroll']}
+                self.changeScreen(dataset)
+
+
+
+    def checkUcDB(self,rfid):
+        self.setStyleSheet("QWidget {border-image: url(images/ NUEVA IMAGEN AQUI .png)}") ## La de esperando
+        data = api_call.get_data(rfid)
+        if isinstance(data, str):
+            return None
+        student = requests.post(self.url_student, data)
+        record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}).json()
+        self.studentCase(record)
+        return True
+
 
     def changeScreen(self, dataset):   
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
@@ -327,8 +343,6 @@ class Reader(QThread):
         # Create an object of the class MFRC522
         MIFAREReader = MFRC522.MFRC522()
         # Welcome message
-        print("Welcome to the MFRC522 data read example")
-        print("Press Ctrl-C to stop.")
 
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while continue_reading:
@@ -352,10 +366,9 @@ class Reader(QThread):
                 #print(str(uid).replace('[','').replace(']','').replace(' ','').strip())
                 #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
                 try:
-                    print("entramos")
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
                     if not req:
-                        req = ''
+                        req = rfid
                         self.sig2.emit(req)
                     else:
                         self.sig1.emit(req)
@@ -379,5 +392,5 @@ if __name__ == "__main__":
     myapp.show()
     myapp.move(resolution.center() - myapp.rect().center())
     sys.exit(app.exec_())
-
+    
 
