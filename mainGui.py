@@ -14,6 +14,8 @@ import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
 import api_call
+import time
+from soundplayer import SoundPlayer
       
 
 font_but = QtGui.QFont()
@@ -362,8 +364,12 @@ class Reader(QThread):
             # Get the UID of the card
             (status,uid) = MIFAREReader.MFRC522_Anticoll()
 
+
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
+                p = SoundPlayer("//home/pi/Desktop/guiPythonLABFAB/Sonido/BeepIn.mp3", 0)
+                p.play(0.5)
+                time.sleep(0.1)
 
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
