@@ -360,7 +360,6 @@ class Reader(QThread):
             # If a card is found
             if status == MIFAREReader.MI_OK:
                 print("Card detected")
-            
             # Get the UID of the card
             (status,uid) = MIFAREReader.MFRC522_Anticoll()
 
