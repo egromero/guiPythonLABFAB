@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        #self.showFullScreen()
+        self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -234,7 +234,9 @@ class MainWindow(QMainWindow):
                           'nonSystemEnroll':'images/NonSystemEnroll.png',
                           'enrollOut':'images/EnrollOut.png',
                           'visit':'images/Visit.png',
-                          'baned':'images/Baned'}
+                          'baned':'images/Baned',
+                          'enrolling': 'images/Enrrolling.png',
+                          'waiting': 'Wait.png'}
         self.generateInstance()
         self.url_student = gral_url+'students/created_from_totem'
 
@@ -263,6 +265,7 @@ class MainWindow(QMainWindow):
 
 
     def screenResponse(self, value):
+        self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
         if isinstance(value, dict):
             self.studentCase(value)
         else:
@@ -274,7 +277,7 @@ class MainWindow(QMainWindow):
 
     def checkUcDB(self,rfid):
         print(rfid, 'checkeando db')
-        #self.setStyleSheet("QWidget {border-image: url(images/ NUEVA IMAGEN AQUI .png)}") ## La de esperando
+        self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") ## La de esperando
         data = api_call.get_data(rfid)
         print(data)
         if isinstance(data, str):
@@ -362,13 +365,8 @@ class Reader(QThread):
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
 
-                # Print UID
-                #rfid= str(uid[0])+":"+str(uid[1])+":"+str(uid[2])+":"+str(uid[3])
-                #rfid= str(uid[3])+str(uid[2])+str(uid[1])+str(uid[0])
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
-                #print(str(uid).replace('[','').replace(']','').replace(' ','').strip())
-                #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
                 try:
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
                     if not req:
