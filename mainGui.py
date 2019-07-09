@@ -366,12 +366,17 @@ class Reader(QThread):
 
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-                p = SoundPlayer("//home/pi/Desktop/guiPythonLABFAB/Sonido/BeepIn.mp3", 0)
-                p.play(0.5)
-                time.sleep(0.1)
-
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
+                if rfid == "EAF851CF" or rfid == "941E8BDB":
+                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
+                    p.play(0.5)
+                    time.sleep(0.1)
+                else:
+                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
+                    p.play(0.5)
+                    time.sleep(0.1)
+
                 try:
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
                     if not req:
