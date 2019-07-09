@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python 
 import sys
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow,QDesktopWidget, QSizePolicy, QWidget, QPushButton, QGridLayout, QLabel, QVBoxLayout, QMessageBox, QComboBox, QStyle
@@ -9,7 +10,7 @@ import time
 import sys
 import requests
 import urllib.request
-from localdbmanager import recordsWriter, visitsRecordsWriter
+import localdbmanager
 import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
@@ -26,11 +27,14 @@ font_but.setWeight(200)
 gral_url = "https://redlabuc.herokuapp.com/"
 
 def internet_on():
-    try:
-        urllib.request.urlopen('http://216.58.192.142', timeout=1)
-        return True
-    except urllib.request.URLError as err: 
-        return False
+    return True
+
+    
+##    try:
+##        urllib.request.urlopen('http://216.58.192.142', timeout=1)
+##        return True
+##    except urllib.request.URLError as err: 
+##        return False
 
 class visitsRecords(QMainWindow):
     sig = pyqtSignal(dict)
@@ -262,13 +266,15 @@ class MainWindow(QMainWindow):
 
         else:
             visitsRecordsWriter(data)
+            print('Sin conexión a internet, generando base de datos local...')
             dataset = {'name':'', 'image': self.imageCase['Visit.png']}
             self.changeScreen(dataset)
 
 
     def screenResponse(self, value):
-        self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
-        QTest.qWait(100)
+        self.t = time.time()
+        #self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
+        #QTest.qWait(100)
         if isinstance(value, dict):
             self.studentCase(value)
         else:
@@ -279,15 +285,17 @@ class MainWindow(QMainWindow):
 
 
     def checkUcDB(self,rfid):
-        print(rfid, 'checkeando db')
+        t = time.time()
         self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
         data = api_call.get_data(rfid)
         if isinstance(data, str):
+            print('Tiempo Checkeo en DI :', time.time()-t)
             return None
         student = requests.post(self.url_student, data)
         record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}).json()
-        QTest.qWait(1000)
+        QTest.qWait(2000)
         self.studentCase(record)
+        print('Tiempo Checkeo en DI :', time.time()-t)
         return True
 
 
@@ -298,12 +306,13 @@ class MainWindow(QMainWindow):
         high = 250 if dataset['image'] == 'nonEnroll' else 450
         leters = len(dataset['name'].split(' ')[0])
         width = leters if leters<=10 else 10
-        offset = 14 if leters>10 else 0
+        offset = 16 if leters>10 else 0
         self.labeltext.setGeometry(QRect((self.screen_size[0]/2)-width*30-offset , high, width*80, 100))
         self.labeltext.setText(dataset['name'].split(' ')[0])   
         QTest.qWait(2000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
+        print('tiempo total: ',time.time()-self.t)
 
 
 
@@ -318,7 +327,7 @@ class MainWindow(QMainWindow):
         else:
             dataset = {'name': value['data']['student']['nombre'],
                        'image': self.imageCase['nonEnroll']}
-        
+        print('Tiempo caso estudiante: ', time.time()-self.t)
         self.changeScreen(dataset)
 
             
@@ -369,22 +378,25 @@ class Reader(QThread):
             if status == MIFAREReader.MI_OK:
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
-                
+                ti = time.time()
                 if rfid == "EAF851CF" or rfid == "941E8BDB":
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
-                    p.play(0.5)
-                    time.sleep(0.1)
+                    p.play(1)
+                    time.sleep(0.001)
                 else:
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
-                    p.play(0.5)
-                    time.sleep(0.1)
+                    p.play(1)
+                    time.sleep(0.001)
+                print('Tiempo de sonido: ', time.time()-ti)
                 try:
+                    t = time.time()
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
                     if not req:
                         req = rfid
                         self.sig2.emit(req)
                     else:
                         self.sig1.emit(req)
+                        print('primera request: ', time.time()-t )
      
                 except:
                     req = 'Not Internet Conection'
