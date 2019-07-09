@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        self.showFullScreen()
+        #self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -268,6 +268,7 @@ class MainWindow(QMainWindow):
 
     def screenResponse(self, value):
         self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
+        QTest.qWait(100)
         if isinstance(value, dict):
             self.studentCase(value)
         else:
@@ -281,11 +282,11 @@ class MainWindow(QMainWindow):
         print(rfid, 'checkeando db')
         self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
         data = api_call.get_data(rfid)
-        print(data)
         if isinstance(data, str):
             return None
         student = requests.post(self.url_student, data)
         record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}).json()
+        QTest.qWait(1000)
         self.studentCase(record)
         return True
 
@@ -294,19 +295,19 @@ class MainWindow(QMainWindow):
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
+        high = 250 if dataset['image'] == 'nonEnroll' else 450
         leters = len(dataset['name'].split(' ')[0])
-        width = leters if leters<=8 else 8
-        offset = 10 if leters>8 else 0
-        self.labeltext.setGeometry(QRect((self.screen_size[0]/2)-width*20-offset , 350, width*80, 100))
+        width = leters if leters<=10 else 10
+        offset = 14 if leters>10 else 0
+        self.labeltext.setGeometry(QRect((self.screen_size[0]/2)-width*30-offset , high, width*80, 100))
         self.labeltext.setText(dataset['name'].split(' ')[0])   
-        QTest.qWait(3000)
+        QTest.qWait(2000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
 
 
 
     def studentCase(self, value):
-        print('studenCase', value['data']['laboratory'])
         enroll = False
         labs = [x['id'] for x in value['data']['laboratory']]
         if self.lab_id in labs:
@@ -368,6 +369,7 @@ class Reader(QThread):
             if status == MIFAREReader.MI_OK:
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
+                
                 if rfid == "EAF851CF" or rfid == "941E8BDB":
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
                     p.play(0.5)
@@ -376,7 +378,6 @@ class Reader(QThread):
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
                     p.play(0.5)
                     time.sleep(0.1)
-
                 try:
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
                     if not req:
@@ -388,6 +389,9 @@ class Reader(QThread):
                 except:
                     req = 'Not Internet Conection'
                     self.sig2.emit(req)
+                    
+                
+
             
                 time.sleep(5)
                 GPIO.cleanup()
