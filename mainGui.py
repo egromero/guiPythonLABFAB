@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        #self.showFullScreen()
+        self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
