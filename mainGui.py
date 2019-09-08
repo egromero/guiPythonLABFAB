@@ -289,13 +289,12 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
         data = api_call.get_data(rfid)
         if isinstance(data, str):
-            print('Tiempo Checkeo en DI :', time.time()-t)
             return None
         student = requests.post(self.url_student, data)
         record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}).json()
         QTest.qWait(2000)
         self.studentCase(record)
-        print('Tiempo Checkeo en DI :', time.time()-t)
+    
         return True
 
 
@@ -312,7 +311,7 @@ class MainWindow(QMainWindow):
         QTest.qWait(2000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
-        print('tiempo total: ',time.time()-self.t)
+
 
 
 
@@ -327,7 +326,7 @@ class MainWindow(QMainWindow):
         else:
             dataset = {'name': value['data']['student']['nombre'],
                        'image': self.imageCase['nonEnroll']}
-        print('Tiempo caso estudiante: ', time.time()-self.t)
+
         self.changeScreen(dataset)
 
             
@@ -355,7 +354,6 @@ class Reader(QThread):
     
     def run(self):
         url = gral_url+"records"
-        print(url)
         continue_reading = True
         # Create an object of the class MFRC522
         MIFAREReader = MFRC522.MFRC522()
@@ -378,8 +376,7 @@ class Reader(QThread):
             if status == MIFAREReader.MI_OK:
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
-                ti = time.time()
-                if rfid == "EAF851CF" or rfid == "941E8BDB":
+                if rfid in ["EAF851CF","941E8BDB","B9A9CACF"]:
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
@@ -387,7 +384,6 @@ class Reader(QThread):
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
-                print('Tiempo de sonido: ', time.time()-ti)
                 try:
                     t = time.time()
                     req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
@@ -396,7 +392,6 @@ class Reader(QThread):
                         self.sig2.emit(req)
                     else:
                         self.sig1.emit(req)
-                        print('primera request: ', time.time()-t )
      
                 except:
                     req = 'Not Internet Conection'
