@@ -15,6 +15,7 @@ import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
 import api_call
+import credentials
 import time
 from soundplayer import SoundPlayer
       
@@ -24,7 +25,7 @@ font_but.setFamily("Segoe UI Symbol")
 font_but.setPointSize(20)
 font_but.setWeight(200)
 
-gral_url = "https://redlabuc.herokuapp.com/"
+gral_url = "http://redlab.dca.uc.cl/"
 
 def internet_on():
     return True
@@ -230,7 +231,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        self.showFullScreen()
+       # self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -255,7 +256,7 @@ class MainWindow(QMainWindow):
     def send(self, data):
         url = gral_url+"visits"
         if internet_on():
-            response = requests.post(url, data).json()
+            response = requests.post(url, data, headers=credentials.totem_credential).json()
             if response['type'] == 'student':
                 self.studentCase(response)
                 self.generateInstance()
@@ -290,8 +291,8 @@ class MainWindow(QMainWindow):
         data = api_call.get_data(rfid)
         if isinstance(data, str):
             return None
-        student = requests.post(self.url_student, data)
-        record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}).json()
+        student = requests.post(self.url_student, data, headers=credentials.totem_credential)
+        record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}, headers=credentials.totem_credential).json()
         QTest.qWait(2000)
         self.studentCase(record)
     
@@ -317,6 +318,7 @@ class MainWindow(QMainWindow):
 
     def studentCase(self, value):
         enroll = False
+        print("Valor que recibe: ", value)
         labs = [x['id'] for x in value['data']['laboratory']]
         if self.lab_id in labs:
             enroll = True
@@ -384,23 +386,24 @@ class Reader(QThread):
                     p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
-                try:
-                    t = time.time()
-                    req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
-                    if not req:
-                        req = rfid
-                        self.sig2.emit(req)
-                    else:
-                        self.sig1.emit(req)
-     
-                except:
-                    req = 'Not Internet Conection'
+                #try:
+                t = time.time()
+                req = requests.post(url, {'rfid':rfid,'lab_id':1}, headers=credentials.totem_credential).json()
+                print("requ ", req)
+                if not req:
+                    req = rfid
                     self.sig2.emit(req)
+                else:
+                    self.sig1.emit(req)
+     
+               # except:
+               #     req = 'Not Internet Conection'
+               #     self.sig2.emit(req)
                     
                 
 
             
-                time.sleep(5)
+                    time.sleep(5)
                 GPIO.cleanup()
 
 

@@ -5,8 +5,8 @@ from credentials import *
 
 
 def get_data(uid):
-
 	url_tarjeta_uc = 'https://api-lib.uc.cl/tarjetauc/v1/user/{0}?buscar=mifare'.format(uid)
+	print("uid value: ",uid)
 	uc_card = requests.get(url_tarjeta_uc, headers = tarjeta_uc_credential).json()
 	print('request', uc_card)
 	data_tarjeta = uc_card['tarjetauc']['data']
