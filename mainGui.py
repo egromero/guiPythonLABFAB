@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python 
 import sys
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QGridLayout, QLabel, QVBoxLayout, QMessageBox, QComboBox, QStyle
+from PyQt5.QtWidgets import QApplication, QMainWindow,QDesktopWidget, QSizePolicy, QWidget, QPushButton, QGridLayout, QLabel, QVBoxLayout, QMessageBox, QComboBox, QStyle
 from PyQt5.QtCore import pyqtSlot, QTimer, QDate, QTime, QDateTime, pyqtSignal, QThread, Qt, QRect, QMetaObject, QCoreApplication, QSize
 from PyQt5.QtTest import QTest
 import datetime
@@ -9,24 +10,32 @@ import time
 import sys
 import requests
 import urllib.request
-from localdbmanager import recordsWriter, visitsRecordsWriter
+import localdbmanager
 import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
+import api_call
+import credentials
+import time
+from soundplayer import SoundPlayer
       
 
 font_but = QtGui.QFont()
 font_but.setFamily("Segoe UI Symbol")
 font_but.setPointSize(20)
-font_but.setWeight(200) 
+font_but.setWeight(200)
 
+gral_url = "http://redlab.dca.uc.cl/"
 
 def internet_on():
-    try:
-        urllib.request.urlopen('http://216.58.192.142', timeout=1)
-        return True
-    except urllib.request.URLError as err: 
-        return False
+    return True
+
+    
+##    try:
+##        urllib.request.urlopen('http://216.58.192.142', timeout=1)
+##        return True
+##    except urllib.request.URLError as err: 
+##        return False
 
 class visitsRecords(QMainWindow):
     sig = pyqtSignal(dict)
@@ -200,14 +209,14 @@ class visitsRecords(QMainWindow):
             return False
 
 class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, size, parent=None):
         super(MainWindow, self).__init__(parent=parent)
-        self.setupUi(self)
+        self.setupUi(self, size)
 
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow, size):
         MainWindow.setObjectName("MainWindow")
-        #MainWindow.resize(1202, 676)
-        self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
+        self.screen_size = size
+        self.setStyleSheet("QWidget {border-image: url(images/InitialBG)}")
         self.lab_id = 1
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -217,14 +226,12 @@ class MainWindow(QMainWindow):
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.recordVisit)
         self.labeltext = QLabel(self.centralwidget)
-        self.labeltext.setGeometry(QRect(720, 320, 800, 400))
-        self.labeltext.setStyleSheet("border-image: none; font: 50pt \"MS Shell Dlg 2\";\n"
-        "background :rgba(255,255, 255,0); color: white")
+        self.labeltext.setStyleSheet("border-image: none; font: 80pt; color: white;")
         self.labeltext.setVisible(False)
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        self.showFullScreen()
+       # self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -234,8 +241,11 @@ class MainWindow(QMainWindow):
                           'nonSystemEnroll':'images/NonSystemEnroll.png',
                           'enrollOut':'images/EnrollOut.png',
                           'visit':'images/Visit.png',
-                          'baned':'images/Baned'}
+                          'baned':'images/Baned',
+                          'enrolling': 'images/Enrrolling.png',
+                          'waiting': 'Wait.png'}
         self.generateInstance()
+        self.url_student = gral_url+'students/created_from_totem'
 
 
     def generateInstance(self):
@@ -244,9 +254,9 @@ class MainWindow(QMainWindow):
 
 
     def send(self, data):
-        url = 'https://redlabuc.herokuapp.com/visits'
+        url = gral_url+"visits"
         if internet_on():
-            response = requests.post(url, data).json()
+            response = requests.post(url, data, headers=credentials.totem_credential).json()
             if response['type'] == 'student':
                 self.studentCase(response)
                 self.generateInstance()
@@ -257,31 +267,58 @@ class MainWindow(QMainWindow):
 
         else:
             visitsRecordsWriter(data)
+            print('Sin conexión a internet, generando base de datos local...')
             dataset = {'name':'', 'image': self.imageCase['Visit.png']}
             self.changeScreen(dataset)
 
 
     def screenResponse(self, value):
+        self.t = time.time()
+        #self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
+        #QTest.qWait(100)
         if isinstance(value, dict):
             self.studentCase(value)
         else:
-            dataset = {'name':'', 'image': self.imageCase['nonSystemEnroll']}
-            self.changeScreen(dataset)
+            if not self.checkUcDB(value):
+                dataset = {'name':'', 'image': self.imageCase['nonSystemEnroll']}
+                self.changeScreen(dataset)
+
+
+
+    def checkUcDB(self,rfid):
+        t = time.time()
+        self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
+        data = api_call.get_data(rfid)
+        if isinstance(data, str):
+            return None
+        student = requests.post(self.url_student, data, headers=credentials.totem_credential)
+        record = requests.post(gral_url+'records', {'rfid':data['rfid'],'lab_id':1}, headers=credentials.totem_credential).json()
+        QTest.qWait(2000)
+        self.studentCase(record)
+    
+        return True
+
 
     def changeScreen(self, dataset):   
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
-        self.labeltext.setText(dataset['name'].split(' ')[0])
-        QTest.qWait(3000)
+        high = 250 if dataset['image'] == 'nonEnroll' else 450
+        leters = len(dataset['name'].split(' ')[0])
+        width = leters if leters<=10 else 10
+        offset = 16 if leters>10 else 0
+        self.labeltext.setGeometry(QRect((self.screen_size[0]/2)-width*30-offset , high, width*80, 100))
+        self.labeltext.setText(dataset['name'].split(' ')[0])   
+        QTest.qWait(2000)
         self.labeltext.setVisible(False)
         self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
 
 
 
+
     def studentCase(self, value):
-        print('studenCase', value['data']['laboratory'])
         enroll = False
+        print("Valor que recibe: ", value)
         labs = [x['id'] for x in value['data']['laboratory']]
         if self.lab_id in labs:
             enroll = True
@@ -291,7 +328,7 @@ class MainWindow(QMainWindow):
         else:
             dataset = {'name': value['data']['student']['nombre'],
                        'image': self.imageCase['nonEnroll']}
-        
+
         self.changeScreen(dataset)
 
             
@@ -318,13 +355,11 @@ class Reader(QThread):
 
     
     def run(self):
-        url = 'https://redlabuc.herokuapp.com/records'
+        url = gral_url+"records"
         continue_reading = True
         # Create an object of the class MFRC522
         MIFAREReader = MFRC522.MFRC522()
         # Welcome message
-        print("Welcome to the MFRC522 data read example")
-        print("Press Ctrl-C to stop.")
 
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while continue_reading:
@@ -335,30 +370,40 @@ class Reader(QThread):
             # If a card is found
             if status == MIFAREReader.MI_OK:
                 print("Card detected")
-            
             # Get the UID of the card
             (status,uid) = MIFAREReader.MFRC522_Anticoll()
 
+
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-
-                # Print UID
-                rfid= str(uid[0])+":"+str(uid[1])+":"+str(uid[2])+":"+str(uid[3])
-                #print(str(uid).replace('[','').replace(']','').replace(' ','').strip())
-                #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
-                try:
-                    req = requests.post(url, {'rfid':rfid,'lab_id':1}).json()
-                    if not req:
-                        req = ''
-                        self.sig2.emit(req)
-                    else:
-                        self.sig1.emit(req)
-     
-                except:
-                    req = 'Not Internet Conection'
+                rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
+                rfid =rfid.upper()
+                if rfid in ["EAF851CF","941E8BDB","B9A9CACF"]:
+                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
+                    p.play(1)
+                    time.sleep(0.001)
+                else:
+                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
+                    p.play(1)
+                    time.sleep(0.001)
+                #try:
+                t = time.time()
+                req = requests.post(url, {'rfid':rfid,'lab_id':1}, headers=credentials.totem_credential).json()
+                print("requ ", req)
+                if not req:
+                    req = rfid
                     self.sig2.emit(req)
+                else:
+                    self.sig1.emit(req)
+     
+               # except:
+               #     req = 'Not Internet Conection'
+               #     self.sig2.emit(req)
+                    
+                
+
             
-                time.sleep(5)
+                    time.sleep(5)
                 GPIO.cleanup()
 
 
@@ -368,9 +413,10 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     desktop = QApplication.desktop()
     resolution = desktop.availableGeometry()
-    myapp = MainWindow()
+    width , height = resolution.width(), resolution.height()
+    myapp = MainWindow((width, height))
     myapp.show()
     myapp.move(resolution.center() - myapp.rect().center())
     sys.exit(app.exec_())
-
+    
 
