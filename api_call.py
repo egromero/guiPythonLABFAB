@@ -5,7 +5,7 @@ from credentials import *
 
 
 def get_data(uid):
-	url_tarjeta_uc = 'https://api-lib.uc.cl/tarjetauc/v1/user/{0}?buscar=mifare'.format(uid)
+	url_tarjeta_uc = 'https://api.uc.cl/tarjetauc/v1/user/{0}?buscar=mifare'.format(uid)
 	print("uid value: ",uid)
 	uc_card = requests.get(url_tarjeta_uc, headers = tarjeta_uc_credential).json()
 	print('request', uc_card)
@@ -15,7 +15,7 @@ def get_data(uid):
 		return data_tarjeta
 
 	run = data_tarjeta['run']
-	url_personas_uc = 'https://api-lib.uc.cl/personauc/v1/user/{0}'.format(run)
+	url_personas_uc = 'https://api.uc.cl/personauc/v1/user/{0}'.format(run)
 	persona_uc  = requests.get(url_personas_uc, headers = persona_uc_credential).json()
 	data = persona_uc['datos_personales']['data']
 
