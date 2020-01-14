@@ -10,7 +10,7 @@ import time
 import sys
 import requests
 import urllib.request
-import localdbmanager
+import local_db_manager
 import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
@@ -28,14 +28,13 @@ font_but.setWeight(200)
 gral_url = "http://redlab.dca.uc.cl/"
 
 def internet_on():
-    return True
-
-    
-##    try:
-##        urllib.request.urlopen('http://216.58.192.142', timeout=1)
-##        return True
-##    except urllib.request.URLError as err: 
-##        return False
+	return True
+    # try:
+    #     urllib.request.urlopen('http://216.58.192.142', timeout=1)
+    #     print()
+    #     return True
+    # except urllib.request.URLError as err: 
+    #     return False
 
 class visitsRecords(QMainWindow):
     sig = pyqtSignal(dict)
@@ -231,7 +230,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-       # self.showFullScreen()
+        self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -379,11 +378,11 @@ class Reader(QThread):
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
                 if rfid in ["EAF851CF","941E8BDB","B9A9CACF"]:
-                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
+                    p = SoundPlayer("../sounds/JohnCenaShort.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
                 else:
-                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
+                    p = SoundPlayer("../sounds/BeepIn.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
                 #try:
@@ -405,7 +404,7 @@ class Reader(QThread):
             
                     time.sleep(5)
                 GPIO.cleanup()
-
+    
 
 
 
