@@ -273,8 +273,8 @@ class MainWindow(QMainWindow):
 
     def screenResponse(self, value):
         self.t = time.time()
-        #self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
-        #QTest.qWait(100)
+        self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
+        QTest.qWait(100)
         if isinstance(value, dict):
             self.studentCase(value)
         else:
@@ -302,7 +302,7 @@ class MainWindow(QMainWindow):
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
-        high = 250 if dataset['image'] == 'nonEnroll' else 450
+        high = 750 if dataset['image'] == 'images/NonEnroll.png' else 450
         leters = len(dataset['name'].split(' ')[0])
         width = leters if leters<=10 else 10
         offset = 16 if leters>10 else 0
@@ -378,11 +378,11 @@ class Reader(QThread):
                 rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
                 if rfid in ["EAF851CF","941E8BDB","B9A9CACF"]:
-                    p = SoundPlayer("../sounds/JohnCenaShort.mp3", 0)
+                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
                 else:
-                    p = SoundPlayer("../sounds/BeepIn.mp3", 0)
+                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
                     p.play(1)
                     time.sleep(0.001)
                 #try:
