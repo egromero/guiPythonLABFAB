@@ -26,6 +26,7 @@ font_but.setPointSize(20)
 font_but.setWeight(200)
 
 gral_url = "http://redlab.dca.uc.cl/"
+lab_id = 1
 
 def internet_on():
 	return True
@@ -272,7 +273,6 @@ class MainWindow(QMainWindow):
 
 
     def screenResponse(self, value):
-        self.t = time.time()
         self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
         QTest.qWait(100)
         if isinstance(value, dict):
@@ -285,7 +285,6 @@ class MainWindow(QMainWindow):
 
 
     def checkUcDB(self,rfid):
-        t = time.time()
         self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
         data = api_call.get_data(rfid)
         if isinstance(data, str):
@@ -375,25 +374,22 @@ class Reader(QThread):
 
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-                rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
+                rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
+                rfidreverse = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
                 rfid =rfid.upper()
-                if rfid in ["EAF851CF","941E8BDB","B9A9CACF"]:
-                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
-                    p.play(1)
-                    time.sleep(0.001)
-                else:
-                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
-                    p.play(1)
-                    time.sleep(0.001)
+                rfidreverse = rfidreverse.upper()
+                p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
+                p.play(1)
+                time.sleep(0.001)
                 #try:
-                t = time.time()
-                req = requests.post(url, {'rfid':rfid,'lab_id':1}, headers=credentials.totem_credential).json()
-                print("requ ", req)
+                req = requests.post(url, {'rfid':rfid,'lab_id':lab_id}, headers=credentials.totem_credential).json()
                 if not req:
-                    req = rfid
-                    self.sig2.emit(req)
-                else:
-                    self.sig1.emit(req)
+                    req = requests.post(url, {'rfid':rfidreverse,'lab_id':lab_id}, headers=credentials.totem_credential).json()
+                    if not req:
+                        req = rfid
+                        self.sig2.emit(req)
+                    else:
+                        self.sig1.emit(req)
      
                # except:
                #     req = 'Not Internet Conection'
