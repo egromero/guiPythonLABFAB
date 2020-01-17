@@ -25,7 +25,7 @@ font_but.setFamily("Segoe UI Symbol")
 font_but.setPointSize(20)
 font_but.setWeight(200)
 
-gral_url = "http://redlab.dca.uc.cl/"
+gral_url = "http://peaceful-cove-91834.herokuapp.com/"
 lab_id = 1
 
 def internet_on():
@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-        self.showFullScreen()
+        #self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -351,6 +351,11 @@ class Reader(QThread):
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
 
+    def rotate(self, data):
+        rotated =''
+        for i in range(0,8,2):
+            rotated = data[0+i:2+i]+rotated
+        return rotated
     
     def run(self):
         url = gral_url+"records"
@@ -374,11 +379,12 @@ class Reader(QThread):
 
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-                rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
-                rfidreverse = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
+                rfid = ''.join([str(hex(i))[2:] if i>16 else '0'+str(hex(i))[2:] for i in uid ])[:-2]
+                rfidreverse = self.rotate(rfid)
                 rfid =rfid.upper()
                 rfidreverse = rfidreverse.upper()
-                p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
+                print(rfid, rfidreverse)
+                p = SoundPlayer("/home/pi/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
                 p.play(1)
                 time.sleep(0.001)
                 #try:
@@ -390,6 +396,8 @@ class Reader(QThread):
                         self.sig2.emit(req)
                     else:
                         self.sig1.emit(req)
+                else:
+                    print('resourse not found:',req)
      
                # except:
                #     req = 'Not Internet Conection'

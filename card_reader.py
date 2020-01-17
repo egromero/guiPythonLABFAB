@@ -45,8 +45,11 @@ while continue_reading:
         # Print UID
         print("Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
         print('UID: ',uid)
-        rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
-        #rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
+        print(type(uid[0]))
+        rfid = ''.join([str(hex(i))[2:] if i>16 else '0'+str(hex(i))[2:] for i in uid ])[:-2]
+        print('c',rfid)
+        #rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
+        rfid = str(hex(uid[0]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[3]))[2:]
         print(rfid)
         #r = requests.post("https://redlabuc.herokuapp.com/records", data={'rfid':rfid,'tipo':"ingreso"})
         #print(r)
