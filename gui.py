@@ -60,9 +60,10 @@ class MainWindow(QMainWindow):
 
 
     def screenResponse(self, value):
-        self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
-        self.showFullScreen()
-        QTest.qWait(100)
+#         self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
+#         QTest.qWait(1)
+#         self.showFullScreen()
+#         QTest.qWait(100)
         if isinstance(value, dict):
             self.studentCase(value)
         else:
@@ -72,7 +73,10 @@ class MainWindow(QMainWindow):
 
 
     def checkUcDB(self,rfid):
-        self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
+        self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}")
+        QTest.qWait(1)
+        self.showFullScreen()
+        QTest.qWait(1000)
         data = api_call.get_data(rfid)
         if isinstance(data, str):
             return None
@@ -85,8 +89,8 @@ class MainWindow(QMainWindow):
 
     def changeScreen(self, dataset):   
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
-        QTest.qWait(1)
         self.setStyleSheet(string)
+        QTest.qWait(10)
         #self.labeltext.setVisible(True)
         #high = 750 if dataset['image'] == 'images/NonEnroll.png' else 450
         #leters = len(dataset['name'].split(' ')[0])
@@ -96,8 +100,10 @@ class MainWindow(QMainWindow):
         #self.labeltext.setText(dataset['name'].split(' ')[0])
         self.showFullScreen()
         QTest.qWait(2000)
+        self.setStyleSheet("QWidget {border-image: none}")
+        QTest.qWait(10)
         self.setVisible(False)
-        #self.setStyleSheet("QWidget {border-image: url(images/InitialBG.png)}")
+        
 
     def studentCase(self, value):
         enroll = False
@@ -123,5 +129,4 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":  
     app = QApplication(sys.argv)
     myapp = MainWindow()
-    myapp.show()
     sys.exit(app.exec_())    
