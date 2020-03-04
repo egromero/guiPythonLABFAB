@@ -21,12 +21,12 @@ class MainWindow(QMainWindow):
     def setupUi(self):
         #self.setStyleSheet("QWidget {border-image: url(/home/pi/guiPythonLABFAB/images/Baned.png)}")
         self.setVisible(False)
-        self.imageCase = {'enrollIn':'images/Enroll.png',
-                          'nonEnroll':'images/NonEnroll.png',
-                          'nonSystemEnroll':'images/NonSystemEnroll.png',
-                          'enrollOut':'images/EnrollOut.png',
-                          'visit':'images/Visit.png',
-                          'baned':'images/Baned',
+        self.imageCase = {'enrollIn':'/home/pi/guiPythonLABFAB/images/Enroll.png',
+                          'nonEnroll':'/home/pi/guiPythonLABFAB/images/NonEnroll.png',
+                          'nonSystemEnroll':'/home/pi/guiPythonLABFAB/images/NonSystemEnroll.png',
+                          'enrollOut':'/home/pi/guiPythonLABFAB/images/EnrollOut.png',
+                          'visit':'/home/pi/guiPythonLABFAB/images/Visit.png',
+                          'baned':'/home/pi/guiPythonLABFAB/images/Baned',
                           'enrolling': 'images/Enrrolling.png',
                           'waiting': 'Wait.png'}
         self.labeltext = QLabel(self)
