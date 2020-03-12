@@ -126,8 +126,9 @@ class NumberPad(QWidget):
             self.runlabel.setText(self.runlabel.text() + '{}'.format(value))
             
 
-if __name__ == "__main__":  
+def start():
     app = QApplication(sys.argv)
-    myapp =NumberPad()
-    myapp.show()
-    sys.exit(app.exec_())
+    return NumberPad()    
+def hide(app):
+    app.setVisible(False)
+    
