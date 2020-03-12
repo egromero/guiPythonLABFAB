@@ -9,6 +9,7 @@ import reader
 import api_call
 import requests
 import credentials
+import urllib.request
 
 lab_id=1
 gral_url= 'http://peaceful-cove-91834.herokuapp.com/'
@@ -57,7 +58,6 @@ class MainWindow(QMainWindow):
 #             print('Sin conexión a internet, generando base de datos local...')
 #             dataset = {'name':'', 'image': self.imageCase['Visit.png']}
 #             self.changeScreen(dataset)
-
 
     def screenResponse(self, value):
 #         self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
@@ -118,7 +118,7 @@ class MainWindow(QMainWindow):
                        'image': self.imageCase['nonEnroll']}
 
         self.changeScreen(dataset)
-           
+    
        
 #     def recordVisit(self):
 #         self.generateInstance()

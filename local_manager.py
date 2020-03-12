@@ -124,8 +124,7 @@ class NumberPad(QWidget):
             return
         if len(self.runlabel.text()) < 10:
             self.runlabel.setText(self.runlabel.text() + '{}'.format(value))
-       
-
+            
 
 if __name__ == "__main__":  
     app = QApplication(sys.argv)
