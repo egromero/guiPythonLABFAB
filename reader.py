@@ -19,7 +19,7 @@ class Reader(QThread):
 
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
-        self.pad = local_manager.start()
+#         self.pad = local_manager.start()
     
     def run(self):
         url = gral_url+"records"
@@ -35,7 +35,7 @@ class Reader(QThread):
             (status,uid) = MIFAREReader.MFRC522_Anticoll()
             
             if check():
-                local_manager.hide(self.pad)
+#                 local_manager.hide(self.pad)
                 if status == MIFAREReader.MI_OK:
                     rfid = ''.join([str(hex(i))[2:] if i>16 else '0'+str(hex(i))[2:] for i in uid ])[:-2]
                     rfid = rfid.upper()
@@ -52,7 +52,8 @@ class Reader(QThread):
                         self.sig1.emit(req)
                         time.sleep(5)
             else:
-                self.pad.show()
+                print("no intenet")
+#                 self.pad.show()
                # except:
                #     req = 'Not Internet Conection'
                #     self.sig2.emit(req)
