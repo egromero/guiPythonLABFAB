@@ -10,7 +10,7 @@ import time
 import sys
 import requests
 import urllib.request
-import localdbmanager
+import local_db_manager
 import RPi.GPIO as GPIO
 import MFRC522
 from itertools import cycle
@@ -25,17 +25,17 @@ font_but.setFamily("Segoe UI Symbol")
 font_but.setPointSize(20)
 font_but.setWeight(200)
 
-gral_url = "http://redlab.dca.uc.cl/"
+gral_url = "http://peaceful-cove-91834.herokuapp.com/"
+lab_id = 1
 
 def internet_on():
-    return True
-
-    
-##    try:
-##        urllib.request.urlopen('http://216.58.192.142', timeout=1)
-##        return True
-##    except urllib.request.URLError as err: 
-##        return False
+	return True
+    # try:
+    #     urllib.request.urlopen('http://216.58.192.142', timeout=1)
+    #     print()
+    #     return True
+    # except urllib.request.URLError as err: 
+    #     return False
 
 class visitsRecords(QMainWindow):
     sig = pyqtSignal(dict)
@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
-       # self.showFullScreen()
+        #self.showFullScreen()
         self.thread = Reader()
         self.thread.sig1.connect(self.screenResponse)
         self.thread.sig2.connect(self.screenResponse)
@@ -273,9 +273,8 @@ class MainWindow(QMainWindow):
 
 
     def screenResponse(self, value):
-        self.t = time.time()
-        #self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
-        #QTest.qWait(100)
+        self.setStyleSheet("QWidget {border-image: url(images/Wait.png)}")
+        QTest.qWait(100)
         if isinstance(value, dict):
             self.studentCase(value)
         else:
@@ -286,7 +285,6 @@ class MainWindow(QMainWindow):
 
 
     def checkUcDB(self,rfid):
-        t = time.time()
         self.setStyleSheet("QWidget {border-image: url(images/Enrrolling.png)}") 
         data = api_call.get_data(rfid)
         if isinstance(data, str):
@@ -303,7 +301,7 @@ class MainWindow(QMainWindow):
         string = "QWidget {border-image: url(%s)}" % (dataset['image'])
         self.setStyleSheet(string)
         self.labeltext.setVisible(True)
-        high = 250 if dataset['image'] == 'nonEnroll' else 450
+        high = 750 if dataset['image'] == 'images/NonEnroll.png' else 450
         leters = len(dataset['name'].split(' ')[0])
         width = leters if leters<=10 else 10
         offset = 16 if leters>10 else 0
@@ -353,6 +351,11 @@ class Reader(QThread):
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
 
+    def rotate(self, data):
+        rotated =''
+        for i in range(0,8,2):
+            rotated = data[0+i:2+i]+rotated
+        return rotated
     
     def run(self):
         url = gral_url+"records"
@@ -376,25 +379,25 @@ class Reader(QThread):
 
             # If we have the UID, continue
             if status == MIFAREReader.MI_OK:
-                rfid = str(hex(uid[3]))[2:]+str(hex(uid[2]))[2:]+str(hex(uid[1]))[2:]+str(hex(uid[0]))[2:]
+                rfid = ''.join([str(hex(i))[2:] if i>16 else '0'+str(hex(i))[2:] for i in uid ])[:-2]
+                rfidreverse = self.rotate(rfid)
                 rfid =rfid.upper()
-                if rfid in ["EAF851CF","941E8BDB","B9A9CACF"]:
-                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/JohnCenaShort.mp3", 0)
-                    p.play(1)
-                    time.sleep(0.001)
-                else:
-                    p = SoundPlayer("/home/pi/Desktop/guiPythonLABFAB/Sonidos/BeepIn.mp3", 0)
-                    p.play(1)
-                    time.sleep(0.001)
+                rfidreverse = rfidreverse.upper()
+                print(rfid, rfidreverse)
+                p = SoundPlayer("/home/pi/guiPythonLABFAB/sounds/BeepIn.mp3", 0)
+                p.play(1)
+                time.sleep(0.001)
                 #try:
-                t = time.time()
-                req = requests.post(url, {'rfid':rfid,'lab_id':1}, headers=credentials.totem_credential).json()
-                print("requ ", req)
+                req = requests.post(url, {'rfid':rfid,'lab_id':lab_id}, headers=credentials.totem_credential).json()
                 if not req:
-                    req = rfid
-                    self.sig2.emit(req)
+                    req = requests.post(url, {'rfid':rfidreverse,'lab_id':lab_id}, headers=credentials.totem_credential).json()
+                    if not req:
+                        req = rfid
+                        self.sig2.emit(req)
+                    else:
+                        self.sig1.emit(req)
                 else:
-                    self.sig1.emit(req)
+                    print('resourse not found:',req)
      
                # except:
                #     req = 'Not Internet Conection'
@@ -405,7 +408,7 @@ class Reader(QThread):
             
                     time.sleep(5)
                 GPIO.cleanup()
-
+    
 
 
 
